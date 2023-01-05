@@ -34,38 +34,54 @@ def hello():
 
 @app.route('/paymant/add' , methods=["POST" , "GET"])
 def add_paymant():
-    data = request.get_json()
-    paymant = Paymant()
-    paymant.to_print(
-        {
-        "price": data["price"] ,
-        "name": data["name"] 
-        }
-    )
-    paymant.save()
-    return jsonify(paymant.to_json()) ,201  
+    try:
+        data = request.get_json()
+        paymant = Paymant()
+        paymant.to_print(
+            {
+            "price": data["price"] ,
+            "name": data["name"] 
+            }
+        )
+        paymant.save()
+        mycol.insert_one(paymant.to_json())
+        return "Created!"
+    except Exception as ex:
+        return f"Not Created!{ex}"
 
 @app.route('/paymant/delete')
 def delete_paymant():
+    try:
+        myquery = { "name": "water" }
+        x = mycol.delete_many(myquery)
+        return f"{x.deleted_count} Delete"
     
-    myquery = { "name": "water" }
-    x = mycol.delete_many(myquery)
-    
-    return f"{x.deleted_count} Delete"
+    except Exception as ex:
+        return f"Not Deleeted!{ex}"
 
-@app.route('/paymant/update')
+@app.route('/paymant/update' , methods=["GET" , "POST"])
 def update_paymant():
-    myquery = { "name": "water" }
-    newvalues = { "$set": { "name": "juice" } }
-    x = mycol.update_many(myquery,newvalues)
+    try:
+        myquery = { "name": "water" }
+        newvalues = { "$set": { "name": "cake" } }
+        x = mycol.update_many(myquery,newvalues)
 
-    return f"{x.modified_count} Update"
+        return "Updated!"
+    except Exception as ex:
+        return f"Not Updated!{ex}"
 
-@app.route('/paymant/read')
+@app.route('/paymant/read' , methods=["GET"])
 def read_paymant():
-    for x in mycol.find():
-        return x
-
+    try:
+        for x in mycol.find():
+            return str(x)
+    except Exception as ex:
+        return f"Not Readed!{ex}"
+    
+@app.route('/paymant/gt/<price>')
+def read_paymant_gt(price):
+    for doc in mycol.find({"price":{"$gt":price}}):
+        return jsonify(doc)
     
 if __name__ == "__main__":
     app.debug = True
