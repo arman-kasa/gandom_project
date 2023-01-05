@@ -1,5 +1,4 @@
-from flask import Flask, render_template , request , jsonify 
-import pymongo
+from flask import Flask, request , jsonify 
 from mongoengine import (
     Document,
     IntField,
@@ -9,79 +8,88 @@ from mongoengine import (
 
 app = Flask(__name__)
 
-myclient = pymongo.MongoClient("mongodb://localhost:27017")
-mydb = myclient["accounter"]
-mycol = mydb["paymants"]
-connect('mydb', host='127.0.0.1', port=27017)
+connect('payments', host='127.0.0.1', port=27017)
 
-class Paymant(Document):
-    price = StringField(required = True)
+class Payment(Document):
+    id = IntField(primary_key = True)
+    price = IntField(required = True)
     name = StringField()
     
     def to_json(self):
         return{
+        "id" : self.id,
         "price" : self.price,
         "name" : self.name
         }
         
     def to_print(self ,json):
-            self.price = json["price"] 
-            self.name = json["name"]        
+        self.id = json["id"]
+        self.price = json["price"] 
+        self.name = json["name"]        
 
 @app.route('/')
 def hello():
     return jsonify({"hello":"world"})
 
-@app.route('/paymant/add' , methods=["POST" , "GET"])
-def add_paymant():
+@app.route('/payment/add' , methods=["POST"])
+def add_payment():
     try:
         data = request.get_json()
-        paymant = Paymant()
-        paymant.to_print(
-            {
-            "price": data["price"] ,
-            "name": data["name"] 
-            }
-        )
-        paymant.save()
-        mycol.insert_one(paymant.to_json())
-        return "Created!"
+        payment = Payment(**data)
+        payment.save()
+        return jsonify(payment.to_json()), 201
+    
     except Exception as ex:
         return f"Not Created!{ex}"
 
-@app.route('/paymant/delete')
-def delete_paymant():
+@app.route('/payment/delete/<int:id>' , methods=["DELETE"])
+def delete_payment(id):
     try:
-        myquery = { "name": "water" }
-        x = mycol.delete_many(myquery)
-        return f"{x.deleted_count} Delete"
+        payments = Payment.objects(id=id)
+        payments.delete()
+        return jsonify(payments.to_json()), 200
     
     except Exception as ex:
         return f"Not Deleeted!{ex}"
 
-@app.route('/paymant/update' , methods=["GET" , "POST"])
-def update_paymant():
+@app.route('/payment/update/<int:id>' , methods=["PUT"])
+def update_payment(id):
     try:
-        myquery = { "name": "water" }
-        newvalues = { "$set": { "name": "cake" } }
-        x = mycol.update_many(myquery,newvalues)
-
-        return "Updated!"
+        data = request.get_json()
+        new_payment = Payment.objects(id=id)
+        new_payment.update(**data)
+        
+        return jsonify(new_payment.to_json()) , 200
+        
     except Exception as ex:
         return f"Not Updated!{ex}"
 
-@app.route('/paymant/read' , methods=["GET"])
-def read_paymant():
+@app.route('/payment/read' , methods=["GET"])
+def read_all():
     try:
-        for x in mycol.find():
-            return str(x)
+        payments_all = Payment.objects()
+        return jsonify(payments_all.to_json()), 200
+        
     except Exception as ex:
         return f"Not Readed!{ex}"
     
-@app.route('/paymant/gt/<price>')
-def read_paymant_gt(price):
-    for doc in mycol.find({"price":{"$gt":price}}):
-        return jsonify(doc)
+@app.route('/payment/read_one_lt/<int:price>' , methods=["GET"])
+def read_lt(price):
+    try:
+        payments_all = Payment.objects(price__lte=price)
+        return jsonify(payments_all.to_json()), 200
+        
+    except Exception as ex:
+        return f"Not Readed!{ex}"
+    
+@app.route('/payment/read_one_gt/<int:price>' , methods=["GET"])
+def read_gt(price):
+    try:
+        payments_all = Payment.objects(price__gte=price)
+        return jsonify(payments_all.to_json()), 200
+        
+    except Exception as ex:
+        return f"Not Readed!{ex}"
     
 if __name__ == "__main__":
     app.debug = True
