@@ -22,7 +22,7 @@ class Category(Document):
         "name" : self.name 
         }
         
-    def to_print(self ,json):
+    def populate(self ,json):
         self.id = json["id"]
         self.name = json["name"]  
 class Payment(Document):
@@ -39,7 +39,7 @@ class Payment(Document):
         "category" : self.category.to_json()
         }
         
-    def to_print(self ,json):
+    def populate(self ,json):
         self.id = json["id"]
         self.price = json["price"] 
         self.name = json["name"]  
@@ -52,11 +52,16 @@ def hello():
 @app.route('/category/add' , methods=["POST"])
 def add_category():  # sourcery skip: remove-unnecessary-else
     try:
-        data = request.get_json()
-        category = Category(**data)
+        id = request.json["id"]
+        name = request.json["name"]
+        if Category.objects(Q(id = id)).first() is not None:
+                return jsonify({"error" : "this id exists"}) , 404
+        if Category.objects(Q(name = name)).first() is not None:
+            return jsonify({"error" : "this name exists"}) , 404
+        category = Category(id = id , name = name)
         category.save()
-        print(data["category"])
         return jsonify(category.to_json()), 201
+
     except Exception as ex:
         return f"Not Created!{ex}"
     
@@ -81,6 +86,11 @@ def category_read():
     except Exception as ex:
         return f"Not Readed!{ex}"
 
+@app.route('/payment/category/<int:id>')
+def payment_category(id):
+    payment = Payment.objects(category = id)
+    return jsonify(payment.to_json()) , 200
+
 @app.route('/payment/add' , methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
     try:
@@ -88,9 +98,11 @@ def add_payment():  # sourcery skip: remove-unnecessary-else
         id = request.json["id"]
         price = request.json["price"]
         category = request.json["category"]
-        category_payment = Category.objects(id = category)
-        if category_payment is None:
-            return jsonify({"error" : "Not found!"}), 404
+        category_payment = Category.objects(id = category).first()
+        if Category.objects(Q(id = category)).first() is None:
+            return jsonify({"error" : "Not found this type of category!"}), 404
+        if Payment.objects(Q(id = id)).first() is not None:
+                return jsonify({"error" : "this id exists"})
         payment = Payment(id = id , name = name , price = price , category = category_payment).save()
         return jsonify(payment.to_json()), 201
     
@@ -101,7 +113,7 @@ def add_payment():  # sourcery skip: remove-unnecessary-else
 @app.route('/payment/delete/<int:id>' , methods=["DELETE"])
 def delete_payment(id):
     try:
-        payments = Payment.objects.first_or_404(id=id)
+        payments = Payment.objects(id =id).first()
         payments.delete()
         return jsonify(payments.to_json()), 200
     
@@ -123,7 +135,7 @@ def update_payment(id):
 @app.route('/payment/read' , methods=["GET"])
 def read_all():
     try:
-        payments_all = Payment.objects()
+        payments_all = Payment.objects.filter()
         return jsonify(payments_all.to_json()), 200
         
     except Exception as ex:
@@ -137,23 +149,29 @@ def read_one():
         
     except Exception as ex:
         return f"Not Readed!{ex}"
-#for 
-#query parameters    
+
 @app.route('/payment/read_one_lt/<int:price>' , methods=["GET"])
 def read_lt(price):
     try:
-        payments_all = Payment.objects(price__lte=price)
-        return jsonify(payments_all.to_json()), 200
-        
+        number = Payment.objects.count()
+        while(number != 0):
+            payments_all = Payment.objects.first(price__lte=price)
+            number = number - 1 
+
+            return jsonify(payments_all.to_json()), 200
+
     except Exception as ex:
         return f"Not Readed!{ex}"
     
 @app.route('/payment/read_one_gt/<int:price>' , methods=["GET"])
 def read_gt(price):
     try:
-        payments_all = Payment.objects(price__gte=price)
-        return jsonify(payments_all.to_json()), 200
-        
+        number = Payment.objects.count()
+        while(number != 0):
+            payments_all = Payment.objects.first(price__gte=price)
+            number = number - 1 
+            return jsonify(payments_all.to_json()), 200
+
     except Exception as ex:
         return f"Not Readed!{ex}"
     
