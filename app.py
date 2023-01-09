@@ -4,7 +4,8 @@ from mongoengine import (
     IntField,
     StringField,
     ReferenceField,
-    connect
+    connect , 
+    Q
 )
 
 app = Flask(__name__)
@@ -83,9 +84,14 @@ def category_read():
 @app.route('/payment/add' , methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
     try:
-        data = request.get_json()
-        payment = Payment(**data)
-        payment.save()
+        name = request.json["name"]
+        id = request.json["id"]
+        price = request.json["price"]
+        category = request.json["category"]
+        category_payment = Category.objects(id = category)
+        if category_payment is None:
+            return jsonify({"error" : "Not found!"}), 404
+        payment = Payment(id = id , name = name , price = price , category = category_payment).save()
         return jsonify(payment.to_json()), 201
     
     except Exception as ex:
