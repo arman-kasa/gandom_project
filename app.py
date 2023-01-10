@@ -65,11 +65,11 @@ def add_category():  # sourcery skip: remove-unnecessary-else
     except Exception as ex:
         return f"Not Created!{ex}"
     
-@app.route('/category/update/<string:name>' , methods=["PUT"])
-def update_category(name):
+@app.route('/category/update/<int:id>' , methods=["PUT"])
+def update_category(id):
     try:
         data = request.get_json()
-        new_category = Category.objects(name=name)
+        new_category = Category.objects(id=id)
         new_category.update(**data)
         
         return jsonify(new_category.to_json()) , 200
@@ -80,16 +80,21 @@ def update_category(name):
 @app.route('/category/read' , methods=["GET"])
 def category_read():
     try:
-        category_all = Category.objects()
-        return jsonify(category_all.to_json()), 200
+        category_all = Category.objects().all()
+        all_category = [{"id" : c.id , "name" : c.name} for c in category_all]
+        return jsonify(all_category), 200
         
     except Exception as ex:
         return f"Not Readed!{ex}"
-
+    
 @app.route('/payment/category/<int:id>')
 def payment_category(id):
-    payment = Payment.objects(category = id)
-    return jsonify(payment.to_json()) , 200
+    selected = Payment.objects(Q(category = id)).all()
+    all_payment = [{"id" : p.id,
+        "price" : p.price,
+        "name" : p.name , 
+        "category" : {"id" : p.category.id , "name" : p.category.name}} for p in selected]
+    return jsonify(all_payment) , 200
 
 @app.route('/payment/add' , methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
@@ -135,8 +140,12 @@ def update_payment(id):
 @app.route('/payment/read' , methods=["GET"])
 def read_all():
     try:
-        payments_all = Payment.objects.filter()
-        return jsonify(payments_all.to_json()), 200
+        selected = Payment.objects().all()
+        all_payment = [{"id" : p.id,
+        "price" : p.price,
+        "name" : p.name , 
+        "category" : {"id" : p.category.id , "name" : p.category.name}} for p in selected]
+        return jsonify(all_payment) , 200
         
     except Exception as ex:
         return f"Not Readed!{ex}"
@@ -150,27 +159,28 @@ def read_one():
     except Exception as ex:
         return f"Not Readed!{ex}"
 
-@app.route('/payment/read_one_lt/<int:price>' , methods=["GET"])
+@app.route('/payment/read_lt/<int:price>' , methods=["GET"])
 def read_lt(price):
     try:
-        number = Payment.objects.count()
-        while(number != 0):
-            payments_all = Payment.objects.first(price__lte=price)
-            number = number - 1 
-
-            return jsonify(payments_all.to_json()), 200
+        selected = Payment.objects(price__lte=price).all()
+        all_payment = [{"id" : p.id,
+        "price" : p.price,
+        "name" : p.name , 
+        "category" : {"id" : p.category.id , "name" : p.category.name}} for p in selected]
+        return jsonify(all_payment) , 200
 
     except Exception as ex:
         return f"Not Readed!{ex}"
     
-@app.route('/payment/read_one_gt/<int:price>' , methods=["GET"])
+@app.route('/payment/read_gt/<int:price>' , methods=["GET"])
 def read_gt(price):
     try:
-        number = Payment.objects.count()
-        while(number != 0):
-            payments_all = Payment.objects.first(price__gte=price)
-            number = number - 1 
-            return jsonify(payments_all.to_json()), 200
+        selected = Payment.objects(price__gte=price).all()
+        all_payment = [{"id" : p.id,
+        "price" : p.price,
+        "name" : p.name , 
+        "category" : {"id" : p.category.id , "name" : p.category.name}} for p in selected]
+        return jsonify(all_payment) , 200
 
     except Exception as ex:
         return f"Not Readed!{ex}"
