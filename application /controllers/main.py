@@ -1,7 +1,6 @@
 from flask import Flask
 from mongoengine import connect
 from application.models import Category, Payment
-from application.controllers import Category, Payment, main
 
 app = Flask(__name__)
 

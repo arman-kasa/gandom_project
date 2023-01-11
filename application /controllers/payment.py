@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from mongoengine import Q
 from application.models import Category, Payment
 
 app = Flask(__name__)
@@ -8,18 +7,14 @@ app = Flask(__name__)
 @app.route("/payment", methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
     try:
-        name = request.json["name"]
-        id = request.json["id"]
-        price = request.json["price"]
-        category = request.json["category"]
-        category_payment = Category.objects(id=category).first()
-        if Category.objects(Q(id=category)).first() is None:
+        data = request.get_json()
+        payment = Payment()
+        payment.populate(data)
+        if Category.objects(id=data.category.id).first() is None:
             return jsonify({"error": "Not found this type of category!"}), 404
-        if Payment.objects(Q(id=id)).first() is not None:
+        if Payment.objects(id=id).first() is not None:
             return jsonify({"error": "this id exists"})
-        payment = Payment(
-            id=id, name=name, price=price, category=category_payment
-        ).save()
+        payment.save()
         return jsonify(payment.to_json()), 201
 
     except Exception as ex:
@@ -59,9 +54,6 @@ def read_all():
 
     except Exception as ex:
         return f"Not Readed!{ex}"
-
-
-rou
 
 
 @app.route("/payment/<int:id>", methods=["GET"])
