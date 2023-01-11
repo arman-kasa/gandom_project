@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from mongoengine import Q
 from application.models import Category, Payment
 
 app = Flask(__name__)
@@ -11,9 +10,9 @@ def add_category():  # sourcery skip: remove-unnecessary-else
         data = request.get_json()
         category = Category()
         category.populate(data)
-        if Category.objects(Q(id=category.id)).first() is not None:
+        if Category.objects(id=category.id).first() is not None:
             return jsonify({"error": "this id exists"}), 400
-        if Category.objects(Q(name=category.name)).first() is not None:
+        if Category.objects(name=category.name).first() is not None:
             return jsonify({"error": "this name exists"}), 400
         category.save()
         return jsonify(category.to_json()), 201
