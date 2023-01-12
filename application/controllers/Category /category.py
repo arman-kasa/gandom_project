@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
-from app.models import Category, Payment
+from flask import request, jsonify , Blueprint
+from application.model.Category import Category
+from application.model.Payment import Payment
 
-app = Flask(__name__)
+app_category = Blueprint("category", __name__, url_prefix="/category")
 
 
-@app.route("/category", methods=["POST"])
+@app_category.route("", methods=["POST"])
 def add_category():  # sourcery skip: remove-unnecessary-else
     try:
         data = request.get_json()
@@ -21,7 +22,7 @@ def add_category():  # sourcery skip: remove-unnecessary-else
         return f"Not Created!{ex}"
 
 
-@app.route("/category/<int:id>", methods=["PUT"])
+@app_category.route("/<int:id>", methods=["PUT"])
 def update_category(id):
     try:
         data = request.get_json()
@@ -34,7 +35,7 @@ def update_category(id):
         return f"Not Updated!{ex}"
 
 
-@app.route("/category", methods=["GET"])
+@app_category.route("", methods=["GET"])
 def category_read():
     try:
         category_all = Category.objects()
@@ -46,7 +47,7 @@ def category_read():
         return f"Not Readed!{ex}"
 
 
-@app.route("/payment/<int:category_id>")
+@app_category.route("/<int:category_id>")
 def payment_category(category_id):
     selected = Payment.objects(category=category_id)
     all_payment = [p.to_json() for p in selected]

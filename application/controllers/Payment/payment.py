@@ -1,9 +1,11 @@
-from flask import Flask, request, jsonify
-from app.models import Category, Payment
+from flask import request, jsonify , Blueprint
+from application.model.Category import Category
+from application.model.Payment import Payment
 
-app = Flask(__name__)
 
-@app.route("/payment", methods=["POST"])
+app_payment = Blueprint("payment", __name__, url_prefix="/payment")
+
+@app_payment.route("", methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
     try:
         data = request.get_json()
@@ -20,7 +22,7 @@ def add_payment():  # sourcery skip: remove-unnecessary-else
         return f"Not Created!{ex}"
 
 
-@app.route("/payment/<int:id>", methods=["DELETE"])
+@app_payment.route("/<int:id>", methods=["DELETE"])
 def delete_payment(id):
     try:
         payments = Payment.objects(id=id).first()
@@ -31,7 +33,7 @@ def delete_payment(id):
         return f"Not Deleeted!{ex}"
 
 
-@app.route("/payment/<int:id>", methods=["PUT"])
+@app_payment.route("/<int:id>", methods=["PUT"])
 def update_payment(id):
     try:
         data = request.get_json()
@@ -44,7 +46,7 @@ def update_payment(id):
         return f"Not Updated!{ex}"
 
 
-@app.route("/payment", methods=["GET"])
+@app_payment.route("", methods=["GET"])
 def read_all():
     try:
         selected = Payment.objects().all()
@@ -55,7 +57,7 @@ def read_all():
         return f"Not Readed!{ex}"
 
 
-@app.route("/payment/<int:id>", methods=["GET"])
+@app_payment.route("/<int:id>", methods=["GET"])
 def read_one(id):
     try:
         payments = Payment.objects(id=id).first()
@@ -65,7 +67,7 @@ def read_one(id):
         return f"Not Readed!{ex}"
 
 
-@app.route("/payment/lt/<int:price>", methods=["GET"])
+@app_payment.route("/lt/<int:price>", methods=["GET"])
 def read_lt(price):
     try:
         selected = Payment.objects(price__lte=price).all()
@@ -76,7 +78,7 @@ def read_lt(price):
         return f"Not Readed!{ex}"
 
 
-@app.route("/payment/gt/<int:price>", methods=["GET"])
+@app_payment.route("/gt/<int:price>", methods=["GET"])
 def read_gt(price):
     try:
         selected = Payment.objects(price__gte=price).all()
