@@ -1,8 +1,7 @@
 from flask import Flask, request, jsonify
-from application.models import Category, Payment
+from app.models import Category, Payment
 
 app = Flask(__name__)
-
 
 @app.route("/payment", methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
@@ -10,9 +9,9 @@ def add_payment():  # sourcery skip: remove-unnecessary-else
         data = request.get_json()
         payment = Payment()
         payment.populate(data)
-        if Category.objects(id=data.category.id).first() is None:
+        if Category.objects(id=payment.category.id).first() is None:
             return jsonify({"error": "Not found this type of category!"}), 404
-        if Payment.objects(id=id).first() is not None:
+        if Payment.objects(id=payment.id).first() is not None:
             return jsonify({"error": "this id exists"})
         payment.save()
         return jsonify(payment.to_json()), 201

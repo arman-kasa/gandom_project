@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from application.models import Category, Payment
+from app.models import Category, Payment
 
 app = Flask(__name__)
 
