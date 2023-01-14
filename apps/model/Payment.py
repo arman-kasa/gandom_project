@@ -1,5 +1,5 @@
 from mongoengine import Document, IntField, StringField, ReferenceField
-from application.models import Category
+from apps.model import Category
 
 
 class Payment(Document):

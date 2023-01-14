@@ -1,6 +1,6 @@
 from flask import request, jsonify , Blueprint
-from application.model.Category import Category
-from application.model.Payment import Payment
+from apps.model.Category import Category
+from apps.model.Payment import Payment
 
 app_category = Blueprint("category", __name__, url_prefix="/category")
 
