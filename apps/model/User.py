@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, IntField
+from mongoengine import Document, StringField
 import hashlib
 from flask import abort
 from apps import redisClient
