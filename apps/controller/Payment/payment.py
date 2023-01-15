@@ -1,5 +1,4 @@
-from apps.model.category import Category
-from apps.model.payment import Payment
+from apps.model import Category, Payment
 from app.controllers.User.user import get_user_by_token
 from flask import request, jsonify, Blueprint, abort
 from mongoengine import Q

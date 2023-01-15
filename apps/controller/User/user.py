@@ -1,6 +1,4 @@
-from apps.model.category import Category
-from apps.model.payment import Payment
-from apps.model.user import User
+from apps.model import User, Category, Payment
 from apps.controller.User.user import get_user_by_token
 from apps import redisClient
 from flask import request, jsonify, Blueprint, abort
