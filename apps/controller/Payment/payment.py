@@ -1,6 +1,8 @@
-from flask import request, jsonify , Blueprint
-from apps.model.Category import Category
-from apps.model.Payment import Payment
+from flask import request, Q ,jsonify , Blueprint , abort 
+from apps.model.category import Category
+from apps.model.payment import Payment
+from app.controllers.User.user import get_user_by_token
+
 
 
 app_payment = Blueprint("payment", __name__, url_prefix="/payment")
@@ -8,80 +10,105 @@ app_payment = Blueprint("payment", __name__, url_prefix="/payment")
 @app_payment.route("", methods=["POST"])
 def add_payment():  # sourcery skip: remove-unnecessary-else
     try:
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token']) 
+        # sourcery skip: remove-unnecessary-else
         data = request.get_json()
         payment = Payment()
         payment.populate(data)
-        if Category.objects(id=payment.category.id).first() is None:
+        if Category.objects(Q(id=payment.category.id) & Q(user=user)).first() is None:
             return jsonify({"error": "Not found this type of category!"}), 404
-        if Payment.objects(id=payment.id).first() is not None:
-            return jsonify({"error": "this id exists"})
+        if Payment.objects(Q(id=payment.id) & Q(user=user)).first() is not None:
+            return jsonify({"error": "this id exists"}) , 409
         payment.save()
         return jsonify(payment.to_json()), 201
-
     except Exception as ex:
-        return f"Not Created!{ex}"
+        return f"Not Added!{ex}"
 
 
 @app_payment.route("/<int:id>", methods=["DELETE"])
 def delete_payment(id):
     try:
-        payments = Payment.objects(id=id).first()
-        payments.delete()
-        return jsonify(payments.to_json()), 200
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
 
+        payments = Payment.objects(Q(id=id) & Q(user=user)).first()
+        if payments is None:
+            return jsonify({"error": "item not found"}), 404
+        payments.delete()
+        return jsonify(payments.to_json(), "DELETED"), 200
     except Exception as ex:
-        return f"Not Deleeted!{ex}"
+        return f"Not Deleted!{ex}"
 
 
 @app_payment.route("/<int:id>", methods=["PUT"])
 def update_payment(id):
     try:
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
+
+        if Payment.objects(Q(id=id) & Q(user=user)).first() is None:
+            return jsonify({"error": "doent exist thid id"}) , 404
         data = request.get_json()
-        new_payment = Payment.objects(id=id)
-        new_payment.update(**data)
+        category = Category.objects(id=data["category"]).first()
+        Payment.objects(Q(id=id) & Q(user=user)).update_one(name=data["name"] , price=data["price"] , category = category)
 
-        return jsonify(new_payment.to_json()), 200
-
+        return jsonify({"message":"payment updated"}), 200
     except Exception as ex:
         return f"Not Updated!{ex}"
-
 
 @app_payment.route("", methods=["GET"])
 def read_all():
     try:
-        selected = Payment.objects().all()
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
+
+        selected = Payment.objects(user=user).all()
         all_payment = [p.to_json() for p in selected]
         return jsonify(all_payment), 200
-
     except Exception as ex:
         return f"Not Readed!{ex}"
+
 
 
 @app_payment.route("/<int:id>", methods=["GET"])
 def read_one(id):
     try:
-        payments = Payment.objects(id=id).first()
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
+        payments = Payment.objects(Q(id=id) & Q(user=user)).first()
         return jsonify(payments.to_json()), 200
 
     except Exception as ex:
         return f"Not Readed!{ex}"
 
 
+
 @app_payment.route("/lt/<int:price>", methods=["GET"])
 def read_lt(price):
     try:
-        selected = Payment.objects(price__lte=price).all()
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
+        selected = Payment.objects(Q(price__lte=price) & Q(user = user)).all()
         all_payment = [p.to_json() for p in selected]
         return jsonify(all_payment), 200
 
     except Exception as ex:
         return f"Not Readed!{ex}"
 
-
 @app_payment.route("/gt/<int:price>", methods=["GET"])
 def read_gt(price):
     try:
-        selected = Payment.objects(price__gte=price).all()
+        if 'token' not in request.headers:
+            abort(401)
+        user = get_user_by_token(request.headers['token'])
+        selected = Payment.objects(Q(price__gte=price) & Q(user = user)).all()
         all_payment = [p.to_json() for p in selected]
         return jsonify(all_payment), 200
 
