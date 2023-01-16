@@ -1,7 +1,6 @@
 from mongoengine import Document, IntField, StringField, ReferenceField
 from flask import request
-from apps.model.category import Category
-from apps.model.user import User
+from apps.model import User, Category
 from apps.controller.User.user import get_user_by_token
 
 
