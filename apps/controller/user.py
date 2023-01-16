@@ -1,10 +1,15 @@
-from apps.model import User, Category, Payment
-from apps import redisClient
 from flask import request, jsonify, Blueprint, abort
 from mongoengine import Q
 import hashlib
 from datetime import timedelta
 import uuid
+
+
+from apps.model.category import Category
+from apps.model.payment import Payment
+from apps.model.user import User
+
+from apps import redisClient
 
 
 app_user = Blueprint("user", __name__, url_prefix="/user")
@@ -75,11 +80,3 @@ def delete_acount():
         category.delete()
     user_pass.delete()
     return jsonify({"message": "DELETED"}), 200
-
-def get_user_by_token(token):
-    try:
-        username = redisClient.get(token).decode("utf-8")
-        user = User.objects(username=username).first()
-        return user.username
-    except Exception:
-        abort(401)

@@ -9,9 +9,9 @@ from flask import Flask
 
 app = Flask(__name__)
 
-from apps.controller.Category.category import app_category
-from apps.controller.Payment.payment import app_payment
-from apps.controller.User.user import app_user
+from apps.controller.category import app_category
+from apps.controller.payment import app_payment
+from apps.controller.user import app_user
 
 
 app.register_blueprint(app_category)

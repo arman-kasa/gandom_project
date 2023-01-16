@@ -1,7 +1,8 @@
-from apps.model import Category, Payment
-from app.controllers.User.user import get_user_by_token
 from flask import request, jsonify, Blueprint, abort
 from mongoengine import Q
+from apps.model.category import Category
+from apps.model.payment import Payment
+from apps.utils import get_user_by_token
 
 
 app_category = Blueprint("category", __name__, url_prefix="/category")
