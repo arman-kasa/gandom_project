@@ -3,7 +3,6 @@ from flask import request
 from apps.model.user import User
 from apps.utils import get_user_by_token
 
-
 class Category(Document):
     id = IntField(primary_key=True)
     name = StringField(required=True)

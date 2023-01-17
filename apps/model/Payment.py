@@ -4,7 +4,6 @@ from apps.model.category import Category
 from apps.model.user import User
 from apps.utils import get_user_by_token
 
-
 class Payment(Document):
     id = IntField(primary_key=True)
     price = IntField(required=True)
